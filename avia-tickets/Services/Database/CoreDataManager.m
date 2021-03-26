@@ -7,6 +7,7 @@
 
 #import "CoreDataManager.h"
 #import "Ticket.h"
+#import "MapPrice.h"
 
 @interface CoreDataManager ()
 
@@ -115,8 +116,35 @@
     
 }
 
+- (FavoriteTicket *)favoriteFromMapPrice:(MapPrice *)mapPrice {
+    
+    NSError *error;
+    NSFetchRequest *request = [FavoriteTicket fetchRequest];
+    
+    NSString *format = @"price == %ld AND airline == %@ AND departure == %@";
+    request.predicate = [NSPredicate predicateWithFormat:format, (long)mapPrice.value, mapPrice.airline,
+//                         mapPrice.from, mapPrice.to,
+                         mapPrice.departure
+//                         mapPrice.expires,
+//                         (long)mapPrice.flightNumber.integerValue
+                         ];
+    NSArray *mapPrices = [self.persistentContainer.viewContext executeFetchRequest:request error:&error];
+    
+    if (error) {
+        NSLog(@"Error: %@", error.localizedDescription);
+        return nil;
+    }
+        
+    return mapPrices.firstObject;
+    
+}
+
 - (BOOL)isFavorite:(Ticket *)ticket {
     return [self favoriteFromTicket:ticket] != nil;
+}
+
+- (BOOL)isFavoriteMap:(MapPrice *)mapPrice {
+    return [self favoriteFromMapPrice:mapPrice] != nil;
 }
 
 - (void)addToFavorite:(Ticket *)ticket {
@@ -136,6 +164,24 @@
     [self saveContext];
 }
 
+- (void)addToFavoriteFromMap:(MapPrice *)mapPrice {
+
+    FavoriteTicket *favorite = [NSEntityDescription insertNewObjectForEntityForName:@"FavoriteTicket" inManagedObjectContext:self.persistentContainer.viewContext];
+    
+    favorite.price = mapPrice.value;
+    favorite.airline = mapPrice.airline;
+    favorite.departure = mapPrice.departure;
+    favorite.expires = [NSDate date];
+    favorite.flightNumber = 0;
+    favorite.returnDate = mapPrice.returnDate;
+    favorite.from = @"from";
+    favorite.to = @"to";
+    favorite.created = [NSDate date];
+//    favorite.isAddedFromMap = NO;
+    
+    [self saveContext];
+}
+
 - (void)removeFromFavorite:(Ticket *)ticket {
     FavoriteTicket *favorite = [self favoriteFromTicket:ticket];
     if (favorite) {
@@ -143,6 +189,15 @@
         [self saveContext];
     }
 }
+
+- (void)removeMapPriceFromFavorite:(MapPrice *)mapPrice {
+    FavoriteTicket *favorite = [self favoriteFromMapPrice:mapPrice];
+    if (favorite) {
+        [self.persistentContainer.viewContext deleteObject:favorite];
+        [self saveContext];
+    }
+}
+
 
 - (NSArray *)favorites {
     NSError *error;

@@ -17,6 +17,7 @@
     {
         _destination = [[DataManager sharedInstance] cityForIATA: [dictionary valueForKey:@"destination"]];
         _origin = origin;
+//        _airline = airline;
         _departure = [self dateFromString:[dictionary valueForKey:@"depart_date"]];
         _returnDate = [self dateFromString:[dictionary valueForKey:@"return_date"]];
         _numberOfChanges = [[dictionary valueForKey:@"number_of_changes"] integerValue];

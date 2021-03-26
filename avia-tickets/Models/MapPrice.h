@@ -11,6 +11,7 @@
 @interface MapPrice : NSObject
 
 @property (strong, nonatomic) City *destination;
+@property (strong, nonatomic) NSString *airline;
 @property (strong, nonatomic) City *origin;
 @property (strong, nonatomic) NSDate *departure;
 @property (strong, nonatomic) NSDate *returnDate;
