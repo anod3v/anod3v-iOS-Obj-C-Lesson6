@@ -51,10 +51,15 @@
 
 - (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control {
     
+    MKPointAnnotation *tappedAnnotation = (MKPointAnnotation *)view.annotation;
+    
     for (MapPrice *mapPrice in self.prices) {
         NSString* priceId = [NSString stringWithFormat:@"%@ (%@)", mapPrice.destination.name, mapPrice.destination.code];
         
-        if (priceId = view.annotation.title) {
+        
+        
+//        if (priceId == tappedAnnotation.title) {
+        if ([tappedAnnotation.title containsString: priceId]) {
             UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Действия с билетом" message:@"Что необходимо сделать с выбранным билетом?" preferredStyle:UIAlertControllerStyleActionSheet];
             
 //            Ticket *ticket = self.tickets[indexPath.row];
