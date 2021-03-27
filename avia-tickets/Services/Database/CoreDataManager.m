@@ -160,6 +160,7 @@
     favorite.from = ticket.from;
     favorite.to = ticket.to;
     favorite.created = [NSDate date];
+    favorite.isAddedFromMap = NO;
     
     [self saveContext];
 }
@@ -177,7 +178,7 @@
     favorite.from = mapPrice.origin.code;
     favorite.to = mapPrice.destination.code;
     favorite.created = [NSDate date];
-//    favorite.isAddedFromMap = NO;
+    favorite.isAddedFromMap = YES;
     
     [self saveContext];
 }
