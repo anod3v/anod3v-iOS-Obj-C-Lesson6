@@ -15,6 +15,8 @@
 
 @property (nonatomic, assign) BOOL isFavorites;
 @property (nonatomic, strong) NSArray *tickets;
+@property (nonatomic, strong) NSArray *ticketsTempArray;
+@property (nonatomic, strong) UISegmentedControl *segmentedControl;
 
 @end
 
@@ -35,11 +37,20 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
+    
     if (self. isFavorites) {
         self.navigationController.navigationBar.prefersLargeTitles = YES;
         self.tickets = [[CoreDataManager sharedInstance] favorites];
+        self.ticketsTempArray = self.tickets;
         [self.tableView reloadData];
     }
+    
+    _segmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"Города", @"Аэропорты"]];
+    [_segmentedControl addTarget:self action:@selector(changeSource) forControlEvents:UIControlEventValueChanged];
+    _segmentedControl.tintColor = [UIColor blackColor];
+    self.navigationItem.titleView = _segmentedControl;
+    _segmentedControl.selectedSegmentIndex = 0;
+    [self changeSource];
 }
 
 
@@ -70,6 +81,27 @@
     }
     return self;
 }
+
+#pragma mark - Actions
+
+- (void)changeSource
+{
+    switch (_segmentedControl.selectedSegmentIndex) {
+        case 0:
+            self.tickets = [self.ticketsTempArray filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
+                return [object isAddedFromMap];
+            }]];
+            break;
+        case 1:
+            self.tickets = [self.ticketsTempArray filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
+                return ![object isAddedFromMap];
+            }]];
+            break;
+         default:
+             break;
+     }
+     [self.tableView reloadData];
+ }
 
 #pragma mark - UITableViewDataSource
 
