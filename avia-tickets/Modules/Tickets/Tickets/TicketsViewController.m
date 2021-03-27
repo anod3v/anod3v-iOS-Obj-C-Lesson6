@@ -45,7 +45,7 @@
         [self.tableView reloadData];
     }
     
-    _segmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"Города", @"Аэропорты"]];
+    _segmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"Из запроса", @"Из карты"]];
     [_segmentedControl addTarget:self action:@selector(changeSource) forControlEvents:UIControlEventValueChanged];
     _segmentedControl.tintColor = [UIColor blackColor];
     self.navigationItem.titleView = _segmentedControl;
@@ -88,14 +88,10 @@
 {
     switch (_segmentedControl.selectedSegmentIndex) {
         case 0:
-            self.tickets = [self.ticketsTempArray filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
-                return [object isAddedFromMap];
-            }]];
+            [self setAllFavoriteTicketsAddedFromRequest];
             break;
         case 1:
-            self.tickets = [self.ticketsTempArray filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
-                return ![object isAddedFromMap];
-            }]];
+            [self setAllFavoriteTicketsAddedFromMap];
             break;
          default:
              break;
@@ -157,6 +153,27 @@
     [alertController addAction:cancelAction];
     [self presentViewController:alertController animated:YES completion:nil];
 }
+
+-(void)setAllFavoriteTicketsAddedFromMap {
+    NSMutableArray *array = [NSMutableArray new];
+    for (FavoriteTicket *ticket in self.ticketsTempArray) {
+        if (ticket.isAddedFromMap == YES) {
+            [array addObject: ticket];
+        }
+        self.tickets = array;
+    }
+}
+  
+-(void)setAllFavoriteTicketsAddedFromRequest {
+    NSMutableArray *array = [NSMutableArray new];
+    for (FavoriteTicket *ticket in self.ticketsTempArray) {
+        if (ticket.isAddedFromMap == NO) {
+            [array addObject: ticket];
+        }
+        self.tickets = array;
+    }
+}
+    
 
 
 
