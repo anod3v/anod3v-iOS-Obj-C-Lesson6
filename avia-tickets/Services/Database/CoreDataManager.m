@@ -174,8 +174,8 @@
     favorite.expires = [NSDate date];
     favorite.flightNumber = 0;
     favorite.returnDate = mapPrice.returnDate;
-    favorite.from = @"from";
-    favorite.to = @"to";
+    favorite.from = mapPrice.origin.code;
+    favorite.to = mapPrice.destination.code;
     favorite.created = [NSDate date];
 //    favorite.isAddedFromMap = NO;
     
