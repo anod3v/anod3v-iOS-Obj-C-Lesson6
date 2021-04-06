@@ -15,6 +15,8 @@
 
 @property (nonatomic, assign) BOOL isFavorites;
 @property (nonatomic, strong) NSArray *tickets;
+@property (nonatomic, strong) NSArray *ticketsTempArray;
+@property (nonatomic, strong) UISegmentedControl *segmentedControl;
 
 @end
 
@@ -35,11 +37,20 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
+    
     if (self. isFavorites) {
         self.navigationController.navigationBar.prefersLargeTitles = YES;
         self.tickets = [[CoreDataManager sharedInstance] favorites];
+        self.ticketsTempArray = self.tickets;
         [self.tableView reloadData];
     }
+    
+    _segmentedControl = [[UISegmentedControl alloc] initWithItems:@[@"Из запроса", @"Из карты"]];
+    [_segmentedControl addTarget:self action:@selector(changeSource) forControlEvents:UIControlEventValueChanged];
+    _segmentedControl.tintColor = [UIColor blackColor];
+    self.navigationItem.titleView = _segmentedControl;
+    _segmentedControl.selectedSegmentIndex = 0;
+    [self changeSource];
 }
 
 
@@ -70,6 +81,23 @@
     }
     return self;
 }
+
+#pragma mark - Actions
+
+- (void)changeSource
+{
+    switch (_segmentedControl.selectedSegmentIndex) {
+        case 0:
+            [self setAllFavoriteTicketsAddedFromRequest];
+            break;
+        case 1:
+            [self setAllFavoriteTicketsAddedFromMap];
+            break;
+         default:
+             break;
+     }
+     [self.tableView reloadData];
+ }
 
 #pragma mark - UITableViewDataSource
 
@@ -125,6 +153,27 @@
     [alertController addAction:cancelAction];
     [self presentViewController:alertController animated:YES completion:nil];
 }
+
+-(void)setAllFavoriteTicketsAddedFromMap {
+    NSMutableArray *array = [NSMutableArray new];
+    for (FavoriteTicket *ticket in self.ticketsTempArray) {
+        if (ticket.isAddedFromMap == YES) {
+            [array addObject: ticket];
+        }
+        self.tickets = array;
+    }
+}
+  
+-(void)setAllFavoriteTicketsAddedFromRequest {
+    NSMutableArray *array = [NSMutableArray new];
+    for (FavoriteTicket *ticket in self.ticketsTempArray) {
+        if (ticket.isAddedFromMap == NO) {
+            [array addObject: ticket];
+        }
+        self.tickets = array;
+    }
+}
+    
 
 
 

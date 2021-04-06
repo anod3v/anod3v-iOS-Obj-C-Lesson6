@@ -10,6 +10,7 @@
 #import "LocationManager.h"
 #import "APIManager.h"
 #import "MapPrice.h"
+#import "CoreDataManager.h"
 
 @interface MapViewController () <MKMapViewDelegate>
 
@@ -29,6 +30,7 @@
     
     self.mapView = [[MKMapView alloc] initWithFrame:self.view.bounds];
     self.mapView.showsUserLocation = YES;
+    self.mapView.delegate=self;
     [self.view addSubview:self.mapView];
     
     [[DataManager sharedInstance] loadData];
@@ -45,6 +47,45 @@
 
 - (void)dataLoadedSuccessfully {
     self.locationManager = [[LocationManager alloc] init];
+}
+
+- (void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control {
+    
+    MKPointAnnotation *tappedAnnotation = (MKPointAnnotation *)view.annotation;
+    
+    for (MapPrice *mapPrice in self.prices) {
+        NSString* priceId = [NSString stringWithFormat:@"%@ (%@)", mapPrice.destination.name, mapPrice.destination.code];
+        
+        
+        
+//        if (priceId == tappedAnnotation.title) {
+        if ([tappedAnnotation.title containsString: priceId]) {
+            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Действия с билетом" message:@"Что необходимо сделать с выбранным билетом?" preferredStyle:UIAlertControllerStyleActionSheet];
+            
+//            Ticket *ticket = self.tickets[indexPath.row];
+            
+            UIAlertAction *favoriteAction;
+            if ([[CoreDataManager sharedInstance] isFavoriteMap: mapPrice]) {
+                
+                favoriteAction = [UIAlertAction actionWithTitle:@"Удалить из избранного" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+                    
+                    [[CoreDataManager sharedInstance] removeMapPriceFromFavorite:mapPrice];
+                }];
+            } else {
+                favoriteAction = [UIAlertAction actionWithTitle:@"Добавить в избранное" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    
+                    [[CoreDataManager sharedInstance] addToFavoriteFromMap:mapPrice];
+                }];
+            }
+            
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Закрыть" style:UIAlertActionStyleCancel handler:nil];
+            [alertController addAction:favoriteAction];
+            [alertController addAction:cancelAction];
+            [self presentViewController:alertController animated:YES completion:nil];
+        }
+    }
+    
+    
 }
 
 - (void)updateCurrentLocation:(NSNotification *)notification {
@@ -64,8 +105,25 @@
     }
 }
 
+- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation {
+    
+    static NSString *identifier = @"AnnotationIdentifer";
+    MKAnnotationView *annotationView = [mapView dequeueReusableAnnotationViewWithIdentifier:identifier];
+    
+    if (annotationView) {
+        annotationView.annotation = annotation;
+    } else {
+        annotationView = [[MKMarkerAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:identifier];
+        annotationView.canShowCallout = YES;
+        annotationView.calloutOffset = CGPointMake(0.0, 5.0);
+        annotationView.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+    }
+    
+    return annotationView;
+}
+
 - (void)setPrices:(NSArray *)prices {
-    self.prices = prices;
+    _prices = prices;
     [self.mapView removeAnnotations: self.mapView.annotations];
  
     for (MapPrice *price in prices) {
